@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/pelletier/go-toml"
 	"github.com/sandertv/gophertunnel/minecraft"
 	"github.com/sandertv/gophertunnel/minecraft/auth"
@@ -14,7 +16,7 @@ import (
 // The following program implements a proxy that forwards players from one local address to a remote address.
 func main() {
 	config := readConfig()
-	token, err := auth.RequestLiveToken()
+	token, err := readToken("auth.tok", auth.TokenSource)
 	if err != nil {
 		panic(err)
 	}
@@ -26,6 +28,8 @@ func main() {
 	}
 	listener, err := minecraft.ListenConfig{
 		StatusProvider: p,
+
+		AllowInvalidPackets: true,
 	}.Listen("raknet", config.Connection.LocalAddress)
 	if err != nil {
 		panic(err)
@@ -139,4 +143,34 @@ func readConfig() config {
 		log.Fatalf("write config: %v", err)
 	}
 	return c
+}
+
+func readToken(path string, src oauth2.TokenSource) (*oauth2.Token, error) {
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		tok, err := src.Token()
+		if err != nil {
+			return nil, fmt.Errorf("request token: %w", err)
+		}
+		f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, os.ModePerm)
+		if err != nil {
+			return nil, err
+		}
+		defer f.Close()
+		if err := json.NewEncoder(f).Encode(tok); err != nil {
+			return nil, fmt.Errorf("encode: %w", err)
+		}
+		return tok, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("stat: %w", err)
+	}
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	tok := &oauth2.Token{}
+	if err := json.NewDecoder(f).Decode(&tok); err != nil {
+		return nil, fmt.Errorf("decode: %w", err)
+	}
+	return tok, nil
 }
