@@ -33,6 +33,11 @@ type IdentityData struct {
 	// Nintendo: 2047319603
 	// Note that these IDs are protected using XBOX Live, making the spoofing of this data very difficult.
 	TitleID string `json:"titleId,omitempty"`
+	// PlayFabID is the unique ID of the player specific to PlayFab, which will remain consistent
+	// as long as they are logged in to the PlayFab identity session via Xbox Live and many other
+	// identity providers supported by PlayFab.
+	// It is only present for new login requests involving multiplayer tokens issued by the Minecraft service.
+	PlayFabID string `json:"-"`
 }
 
 // checkOfflineUsername is used to check if a username is valid for normal Minecraft client,
