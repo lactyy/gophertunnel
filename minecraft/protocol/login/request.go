@@ -379,14 +379,17 @@ type tokenClaims struct {
 	jwt.Claims
 
 	// IdentityProviderType is seemingly the underlying identity provider
-	// used to sign in to the authorization service, which is issuer of the token.
+	// used to sign in to the authorization service. It is always 'PlayFab'.
 	IdentityProviderType string `json:"ipt"`
 	// PlayFabID is the PlayFab entity ID for the authenticated player.
+	// It is the ID for the master player account of the player, which
+	// is shared across multiple PlayFab titles published by Mojang.
 	PlayFabID string `json:"mid"`
 	// TitleID is the title ID specific to PlayFab.
 	// It is typically '20CA2' for the base version of the game.
 	TitleID string `json:"tid"`
-	// ClientPublicKey is the public key of the client used to sign the client data.
+	// ClientPublicKey is the public key of the client used to sign the client data
+	// and to initialise the encryption in the handshake.
 	ClientPublicKey string `json:"cpk"`
 	// XUID is the ID of the authenticated player specific to Xbox Live.
 	XUID string `json:"xid"`

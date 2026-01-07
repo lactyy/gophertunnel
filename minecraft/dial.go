@@ -300,17 +300,18 @@ func (d Dialer) DialContext(ctx context.Context, network, address string) (conn 
 }
 
 // MultiplayerTokenSource supplies a multiplayer token issued by the Minecraft authorization
-// service, which is newly introduced in 1.21.100.
+// service, which is newly introduced in 1.21.100. It is recommended to request tokens from
+// [service.AuthorizationToken.MultiplayerToken].
 type MultiplayerTokenSource interface {
 	// MultiplayerToken issues a JWT token to be used for OpenID authentication with
-	// multiplayer servers. The public key should be included in the claims to have
-	// servers verify it when initiating encryption.
+	// multiplayer servers. The token must contain the public key in the 'cpk' claim in
+	// order for the server to verify client data with the same key.
 	MultiplayerToken(ctx context.Context, key *ecdsa.PublicKey) (jwt string, err error)
 }
 
 // multiplayerTokenSource is an implementation of MultiplayerTokenSource
-// used by default in [Dialer.DialContext], which uses the underlying [oauth2.TokenSource]
-// to sign in to Xbox Live to authenticate with PlayFab.
+// used by default, which uses the underlying [oauth2.TokenSource]
+// to sign in to the PlayFab account with Xbox Live.
 type multiplayerTokenSource struct {
 	oauth2.TokenSource
 }

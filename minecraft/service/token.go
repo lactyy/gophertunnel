@@ -69,8 +69,9 @@ func (e *AuthorizationEnvironment) ServiceName() string {
 }
 
 // UnmarshalJSON implements [json.Unmarshaler.UnmarshalJSON].
-// It parses some of the fields into [url.URL] by manually decoding them
-// to strings first, as [url.URL] does not implement UnmarshalText() method.
+// Since UnmarshalText() is not implemented in [url.URL] and [json.Unmarshal]
+// attempts to decode the string URL as a struct, it will first decode the URL
+// fields as strings then parse them manually.
 // See: https://github.com/golang/go/issues/52638
 func (e *AuthorizationEnvironment) UnmarshalJSON(b []byte) error {
 	type Alias AuthorizationEnvironment
@@ -354,7 +355,7 @@ func (e *AuthorizationEnvironment) MultiplayerToken(ctx context.Context, src Tok
 // service with additional details, which can be used for authenticating
 // with multiplayer servers using the OpenID configuration.
 type multiplayerToken struct {
-	// IssuedAt indicates the time that the multiplayer token is issued.
+	// IssuedAt indicates the time the multiplayer token was issued.
 	IssuedAt time.Time `json:"issuedAt"`
 	// SignedToken is a JWT string that could be used by clients in the
 	// connection request encapsulated in a Login packet. Servers are
@@ -362,9 +363,6 @@ type multiplayerToken struct {
 	// of the authorization service.
 	SignedToken string `json:"signedToken"`
 	// ValidUntil is the expiration time for the multiplayer token.
-	// It doesn't play any role for issuing tokens since this isn't something
-	// that could be cached and re-used for authentication as the expiration
-	// time included in the SignedToken JWT is just one minute.
 	ValidUntil time.Time `json:"validUntil"`
 }
 
@@ -469,7 +467,7 @@ type Configuration struct {
 	// ID is the name of the Configuration.
 	// It is typically 'Minecraft'.
 	ID string `json:"id"`
-	// Parameters contains data-driven parameters specific to one of the
+	// Parameters contains data-driven parameters for the
 	// components of the game client.
 	//
 	// It encapsulates every value in string even if the underlying type
@@ -497,8 +495,8 @@ type TokenConfig struct {
 // identity and language preferences of the user.
 type UserConfig struct {
 	// Language is the base language of the user without region.
-	// For example, if the user language in the application
-	// was configured to 'en-US', then Language will be 'en'.
+	// For example, if the game language was configured to
+	// 'en-US', then Language will be 'en'.
 	Language string `json:"language,omitempty"`
 
 	// LanguageCode is the user language with the region.
@@ -507,8 +505,8 @@ type UserConfig struct {
 
 	// RegionCode denotes the specific region associated with the language.
 	// It is typically derived from [language.Tag.Region].
-	// For example, if the user language in the application
-	// was configured to 'en-US', then RegionCode will be 'US'.
+	// For example, if the game language was configured to
+	// 'en-US', then RegionCode will be 'US'.
 	RegionCode string `json:"regionCode,omitempty"`
 
 	// Token is the identity token used for authentication.
