@@ -213,6 +213,7 @@ func (d Dialer) DialContext(ctx context.Context, network, address string) (conn 
 			}
 			client, err := xsapi.ClientConfig{
 				HTTPClient: d.HTTPClient,
+				DisableRTA: true,
 			}.New(ctx, x)
 			if err != nil {
 				return nil, &net.OpError{Op: "dial", Net: "minecraft", Err: fmt.Errorf("login to xbox live: %w", err)}
